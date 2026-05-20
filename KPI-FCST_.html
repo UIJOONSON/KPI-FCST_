@@ -15,7 +15,7 @@
         }
 
         body { font-family: var(--font-main); background-color: var(--surface); color: var(--primary); margin: 0; padding: 30px; }
-        h2 { font-size: 28px; font-weight: 800; margin-bottom: 20px; letter-spacing: -0.5px; border-bottom: 2px solid #000; display: inline-block; padding-bottom: 5px; }
+        h2 { font-size: 28px; font-weight: 800; margin: 0; letter-spacing: -0.5px; }
         h3 { font-size: 18px; font-weight: 700; margin-bottom: 15px; }
 
         /* Tables */
@@ -82,11 +82,51 @@
         .delete-btn:hover {
             background-color: #ffebee;
         }
+
+        /* Reset Button Hover */
+        button[onclick="resetAllData()"]:hover {
+            background-color: #d32f2f !important;
+            color: #fff !important;
+            border-color: #d32f2f !important;
+        }
+
+        /* Config Summary Styling */
+        .config-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 20px;
+            margin-top: 15px;
+        }
+        .config-col {
+            background: #fafafa;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #eee;
+        }
+        .config-col h4 {
+            margin-top: 0;
+            margin-bottom: 10px;
+            font-size: 14px;
+            border-bottom: 2px solid #000;
+            padding-bottom: 5px;
+        }
+        .config-col ul {
+            margin: 0;
+            padding-left: 18px;
+            font-size: 12px;
+            line-height: 1.6;
+        }
+        .config-col li {
+            margin-bottom: 6px;
+        }
     </style>
 </head>
 <body>
 
-    <h2>KPI Dynamic Dashboard</h2>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid #000; padding-bottom: 8px;">
+        <h2>KPI Dynamic Dashboard</h2>
+        <button onclick="resetAllData()" style="cursor: pointer; padding: 6px 15px; border-radius: 20px; border: 1px solid #d32f2f; background: #fff; color: #d32f2f; font-weight: bold; font-size: 12px; transition: all 0.2s;">초기값으로 재설정 (Reset)</button>
+    </div>
     <div class="unit-label">단위: 백만 (KRW M)</div>
 
     <div class="table-container">
@@ -268,6 +308,41 @@
             </div>
             <button onclick="addPromoRow()" style="margin-top:10px; cursor:pointer; padding: 5px 15px; border-radius: 20px; border: 1px solid #000; background: #fff; font-weight: bold;">+ 프로모션 추가</button>
         </div>
+
+        <div class="card full-width-card" style="margin-top: 10px;">
+            <h3 style="margin-top: 0; display: flex; align-items: center; gap: 8px;">⚙️ 시스템 계산 설정 및 규칙 요약 (System Calculation Rules)</h3>
+            <div class="config-grid">
+                <div class="config-col">
+                    <h4>1. 매출 반영 및 감쇠 모델 (Sales Decay)</h4>
+                    <ul>
+                        <li><strong>주차 범위:</strong> 18주차 ~ 24주차 (총 7주) 노출 및 자동 할당.</li>
+                        <li><strong>시작 주차 기여:</strong> 신제품 출시 및 프로모션 시작 주에 총액의 <strong>71.4%</strong> 반영.</li>
+                        <li><strong>다음 주차 기여:</strong> 그 다음 주차에 <strong>60% 감쇠한 잔여 28.6%</strong> 반영.</li>
+                        <li><strong>솔드아웃 처리:</strong> 출시 3주 차부터는 기여액이 0%로 솔드아웃 자동 차단.</li>
+                        <li><strong>기본 매출 분할:</strong> 기입된 매장 기본 매출을 18주~22주(총 31일) 기준으로 배분 (18주 3일, 19~22주 7일). 23~24주는 0원 반영.</li>
+                    </ul>
+                </div>
+                <div class="config-col">
+                    <h4>2. 등급 비율 및 매장 전개 규칙</h4>
+                    <ul>
+                        <li><strong>등급별 셀스루(Sell-through) 반영률:</strong>
+                            <br>• <strong>A등급:</strong> 80% • <strong>B등급:</strong> 60%
+                            <br>• <strong>C등급:</strong> 40% • <strong>D등급:</strong> 20%
+                        </li>
+                        <li><strong>매장별 N분의 1 분배:</strong> 전개 매장으로 여러 지점이 선택된 경우, 해당 신제품 물량 및 매출, 프로모션 예산이 매장 수(N)만큼 <strong>균등하게 N분의 1로 나뉘어 기여</strong>.</li>
+                        <li><strong>ISO 표준 주차:</strong> 입력한 시작/출시 날짜를 기준으로 JavaScript의 <strong>ISO 8601 Week Number</strong> 공식을 가동하여 주차 자동 변환.</li>
+                    </ul>
+                </div>
+                <div class="config-col">
+                    <h4>3. 매장 정책 비율 및 데이터 관리</h4>
+                    <ul>
+                        <li><strong>홍대 및 명동 특별 비중 (7:3):</strong> 두 매장은 정책에 의거하여 상세 카드의 신제품 및 프로모션 기여 총합을 항상 <strong>7(신제품) : 3(프로모션) 비율</strong>로 보정하여 대시보드에 기여.</li>
+                        <li><strong>성수 및 분당스퀘어:</strong> 보정 필터링 없이 상세 계획 카드의 기여액을 <strong>100% 그대로 반영</strong>.</li>
+                        <li><strong>데이터 실시간 브라우저 백업:</strong> 모든 실제 실적(ACTUAL) 입력, 리스트 추가/삭제 및 필드 수정값은 브라우저 <strong>LocalStorage</strong>에 실시간 저장되어 새로고침 후에도 유지.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -337,6 +412,82 @@
             const row = btn.closest('tr');
             row.remove();
             updateAll();
+        }
+
+        // 로컬스토리지 자동 저장 함수
+        function saveToLocalStorage() {
+            // 1. ACTUAL_VALUES 저장
+            localStorage.setItem('kpi_actual_values', JSON.stringify(ACTUAL_VALUES));
+
+            // 2. 신제품 목록 저장
+            const productRows = document.querySelectorAll('#productSetupBody tr');
+            const products = [];
+            productRows.forEach(row => {
+                // TOTAL 합계 행은 제외
+                if (row.style.fontWeight === '800') return;
+                
+                const ip = row.querySelector('.p-ip').value;
+                const date = row.querySelector('.p-date').value;
+                const theme = row.querySelector('.p-theme').value;
+                const grade = row.querySelector('.p-grade').value;
+                const totalQty = parseFloat(row.querySelector('.p-total-qty').value) || 0;
+                const week = row.querySelector('.p-week').value;
+                
+                const stores = [];
+                if (row.querySelector('.p-store-hd').checked) stores.push("홍대");
+                if (row.querySelector('.p-store-md').checked) stores.push("명동");
+                if (row.querySelector('.p-store-ss').checked) stores.push("성수");
+                if (row.querySelector('.p-store-bd').checked) stores.push("분당스퀘어");
+
+                products.push({ ip, date, theme, grade, totalQty, week, stores });
+            });
+            localStorage.setItem('kpi_products', JSON.stringify(products));
+
+            // 3. 프로모션 목록 저장
+            const promoRows = document.querySelectorAll('#promotionSetupBody tr');
+            const promotions = [];
+            promoRows.forEach(row => {
+                // TOTAL 합계 행은 제외
+                if (row.style.fontWeight === '800') return;
+                
+                const name = row.querySelector('.promo-name').value;
+                const scheme = row.querySelector('.promo-scheme').value;
+                const start = row.querySelector('.promo-start').value;
+                const end = row.querySelector('.promo-end').value;
+                const week = row.querySelector('.promo-week').value;
+                const amount = parseFloat(row.querySelector('.promo-amount').value) || 0;
+
+                const stores = [];
+                if (row.querySelector('.promo-store-hd').checked) stores.push("홍대");
+                if (row.querySelector('.promo-store-md').checked) stores.push("명동");
+                if (row.querySelector('.promo-store-ss').checked) stores.push("성수");
+                if (row.querySelector('.promo-store-bd').checked) stores.push("분당스퀘어");
+
+                promotions.push({ name, scheme, start, end, week, amount, stores });
+            });
+            localStorage.setItem('kpi_promotions', JSON.stringify(promotions));
+
+            // 4. 매장 설정 저장 (Card 1)
+            const storeRows = document.querySelectorAll('#storeSetupBody tr');
+            const storeSettings = [];
+            storeRows.forEach(row => {
+                const name = row.querySelector('.store-name-in').value;
+                const target = parseFloat(row.querySelector('.store-target-in').value) || 0;
+                const basesales = parseFloat(row.querySelector('.store-basesales-in').value) || 0;
+                storeSettings.push({ name, target, basesales });
+            });
+            localStorage.setItem('kpi_store_settings', JSON.stringify(storeSettings));
+        }
+
+        // 로컬스토리지 전체 초기화 및 새로고침
+        function resetAllData() {
+            if (confirm("정말로 모든 입력값(실적, 신제품 목록, 프로모션 목록, 매장 설정)을 초기값으로 재설정하시겠습니까?\n저장된 사용자 데이터가 모두 삭제됩니다.")) {
+                localStorage.removeItem('kpi_actual_values');
+                localStorage.removeItem('kpi_products');
+                localStorage.removeItem('kpi_promotions');
+                localStorage.removeItem('kpi_store_settings');
+                location.reload();
+            }
         }
 
         function updateAll() {
@@ -613,7 +764,14 @@
                         storePromoFcst = weeklyTotalEvent * 0.3;
                     }
 
-                    const storeBaseSalesFcst = store.basesales / WEEKS.length; // 7주 기준 균등분할
+                    let storeBaseSalesFcst = 0;
+                    if (w === 18) {
+                        storeBaseSalesFcst = store.basesales * (3 / 31);
+                    } else if (w >= 19 && w <= 22) {
+                        storeBaseSalesFcst = store.basesales * (7 / 31);
+                    } else {
+                        storeBaseSalesFcst = 0; // 23주, 24주 등은 0원 반영
+                    }
 
                     const fcstVal = Math.round(storeNewProdFcst + storePromoFcst + storeBaseSalesFcst);
                     const actualVal = ACTUAL_VALUES[`${store.name}_${w}`] || 0;
@@ -741,6 +899,9 @@
                     }
                 }
             });
+
+            // 입력값의 로컬스토리지 동기화 저장 실행
+            saveToLocalStorage();
         }
 
         // 새 제품 행 추가 함수
@@ -803,8 +964,8 @@
                 <td style="text-align: center; white-space: nowrap;">
                     <label style="font-size: 11px; margin-right: 4px;"><input type="checkbox" class="promo-store-hd" ${stores.includes("홍대") ? "checked" : ""}>홍</label>
                     <label style="font-size: 11px; margin-right: 4px;"><input type="checkbox" class="promo-store-md" ${stores.includes("명동") ? "checked" : ""}>명</label>
-                    <label style="font-size: 11px; margin-right: 4px;"><input type="checkbox" class="promo-store-ss" ${stores.includes("성수") ? "checked" : ""}>성</label>
-                    <label style="font-size: 11px;"><input type="checkbox" class="promo-store-bd" ${stores.includes("분당스퀘어") ? "checked" : ""}>분</label>
+                    <label style="font-size: 11px; margin-right: 4px;"><input type="checkbox" class="promo-store-ss" ${stores.includes("성수") ? "checked" : ""}>성수</label>
+                    <label style="font-size: 11px;"><input type="checkbox" class="promo-store-bd" ${stores.includes("분당스퀘어") ? "checked" : ""}>분당</label>
                 </td>
                 <td><input type="number" class="promo-amount" value="${amount}" style="width: 70px;"></td>
             </tr>`;
@@ -847,17 +1008,42 @@
         });
 
         window.onload = () => {
-            // 신제품 기본 데이터 로드
+            // 1. ACTUAL_VALUES 로드
+            const savedActuals = localStorage.getItem('kpi_actual_values');
+            if (savedActuals) {
+                Object.assign(ACTUAL_VALUES, JSON.parse(savedActuals));
+            }
+
+            // 2. 매장 Target 및 기본매출 로드 (Card 1)
+            const savedStoreSettings = localStorage.getItem('kpi_store_settings');
+            if (savedStoreSettings) {
+                const storeSettings = JSON.parse(savedStoreSettings);
+                const storeRows = document.querySelectorAll('#storeSetupBody tr');
+                storeRows.forEach((row, idx) => {
+                    const setting = storeSettings[idx];
+                    if (setting) {
+                        row.querySelector('.store-name-in').value = setting.name;
+                        row.querySelector('.store-target-in').value = setting.target;
+                        row.querySelector('.store-basesales-in').value = setting.basesales;
+                    }
+                });
+            }
+
+            // 3. 신제품 데이터 로드
             const ptbody = document.getElementById('productSetupBody');
             ptbody.innerHTML = '';
-            INITIAL_PRODUCTS.forEach(p => {
+            const savedProducts = localStorage.getItem('kpi_products');
+            const productsToLoad = savedProducts ? JSON.parse(savedProducts) : INITIAL_PRODUCTS;
+            productsToLoad.forEach(p => {
                 addProductRow(p.ip, p.date, p.theme, p.grade, p.totalQty, p.week, p.stores);
             });
 
-            // 프로모션 기본 데이터 로드 (오프라인 목록 매칭)
+            // 4. 프로모션 데이터 로드 (오프라인 목록 매칭)
             const promotbody = document.getElementById('promotionSetupBody');
             promotbody.innerHTML = '';
-            INITIAL_PROMOTIONS.forEach(p => {
+            const savedPromotions = localStorage.getItem('kpi_promotions');
+            const promotionsToLoad = savedPromotions ? JSON.parse(savedPromotions) : INITIAL_PROMOTIONS;
+            promotionsToLoad.forEach(p => {
                 addPromoRow(p.name, p.scheme, p.start, p.end, p.week, p.amount, p.stores);
             });
 
